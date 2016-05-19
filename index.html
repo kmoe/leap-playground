@@ -1,0 +1,55 @@
+<html>
+<head>
+    <title>Bone Hands - Leap</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r67/three.js"></script>
+    <script src="https://js.leapmotion.com/leap-0.6.4.min.js"></script>
+    <script src="https://js.leapmotion.com/leap-plugins-0.1.10.js"></script>
+</head>
+<body>
+    hey
+    <div id="output">output</div>
+</body>
+
+<script>
+    console.log('hi');
+
+    var actionTimeout;
+    var output = document.getElementById("output");
+
+    Leap.loop({background: true}, {
+        hand: function (hand) {
+            output.innerHTML = hand.pinchStrength.toPrecision(2);
+        }})
+        // these two LeapJS plugins, handHold and handEntry are available from leapjs-plugins, included above.
+        // handHold provides hand.data
+        // handEntry provides handFound/handLost events.
+        .use('handHold')
+        .use('handEntry')
+        .on('handFound', function(hand){
+
+            console.log('hand found');
+            actionTimeout = setTimeout(function() {
+                console.log('timed out');
+
+                var json = JSON.stringify({
+                   message: 'leap motion testing'
+                });
+
+                var req = new XMLHttpRequest();
+                req.addEventListener('load', function() {
+                    console.log(this.responseText);
+                });
+                req.open('POST', 'https://trashfire.herokuapp.com/logs');
+                req.setRequestHeader('content-type', 'application/json');
+                req.send(json);
+
+            }, 2000);
+        })
+        .on('handLost', function(hand){
+            console.log('hand lost');
+            clearTimeout(actionTimeout);
+
+        })
+        .connect();
+</script>
+</html>
